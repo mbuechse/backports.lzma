@@ -1,0 +1,7 @@
+Place the appropriate files under
+
+include
+lib
+
+from the XZ windows build, e.g.,
+https://tukaani.org/xz/xz-5.2.3-windows.7z

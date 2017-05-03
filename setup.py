@@ -59,6 +59,7 @@ def get_include_dirs():
     ]
     if pc_dir:
         dirs.append(pc_dir)
+    dirs.append(os.path.join("windows", "include"))
     return dirs
 
 
@@ -73,17 +74,23 @@ def get_library_dirs():
     ]
     if pc_dir:
         dirs.append(pc_dir)
+    dirs.append(os.path.join("windows", "lib"))
     return dirs
 
 
 packages = ["backports", "backports.lzma"]
 prefix = sys.prefix
 home = os.path.expanduser("~")
-extens = [Extension('backports/lzma/_lzma',
+define_macros = [("LZMA_API_STATIC", None)] if os.name == "nt" else []
+extra_objects = [os.path.join("windows", "lib", "liblzma.a")] if os.name == "nt" else []
+libraries = [] if os.name == "nt" else ['lzma']
+extens = [Extension('backports.lzma._lzma',
                     ['backports/lzma/_lzmamodule.c'],
-                    libraries = ['lzma'],
+                    libraries = libraries,
                     include_dirs = get_include_dirs(),
                     library_dirs = get_library_dirs(),
+                    define_macros=define_macros,
+                    extra_objects=extra_objects,
                     )]
 
 descr = "Backport of Python 3.3's 'lzma' module for XZ/LZMA compressed files."
