@@ -6,10 +6,8 @@
 # See other files for separate copyright notices.
 
 import sys, os
-from warnings import warn
 import subprocess
 
-from distutils import log
 from distutils.command.build_ext import build_ext
 from distutils.core import setup
 from distutils.extension import Extension
@@ -20,7 +18,7 @@ from distutils.extension import Extension
 __version__ = None
 with open('backports/lzma/__init__.py') as handle:
     for line in handle:
-        if (line.startswith('__version__')):
+        if line.startswith('__version__'):
             exec(line.strip())
             break
 if __version__ is None:
@@ -31,21 +29,15 @@ print("This is backports.lzma version %s" % __version__)
 
 def pkg_config(*args):
     """Call pkg-config and return stdout data on success."""
-    popen = subprocess.Popen(
-        ["pkg-config"] + list(args),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-    )
-    stdout, stderr = popen.communicate()
-    if popen.wait():
-        if stderr:
-            print("Running pkg-config %s failed:\n%s" % (" ".join(args), stderr))
-        else:
-            # Most likely pkg-config is not installed (Windows?)
-            pass
-    else:
-        return stdout.strip()
+    try:
+        stdout = subprocess.check_output(
+            ["pkg-config"] + list(args),
+            universal_newlines=True,
+        )
+    except Exception as e:
+        print("Running pkg-config %s failed: %r" % (" ".join(args), e))
+        return
+    return stdout.strip()
 
 
 def get_include_dirs():
@@ -59,7 +51,8 @@ def get_include_dirs():
     ]
     if pc_dir:
         dirs.append(pc_dir)
-    dirs.append(os.path.join("windows", "include"))
+    if sys.platform == "win32":
+        dirs.append(os.path.join("windows", "include"))
     return dirs
 
 
@@ -74,7 +67,8 @@ def get_library_dirs():
     ]
     if pc_dir:
         dirs.append(pc_dir)
-    dirs.append(os.path.join("windows", "lib"))
+    if sys.platform == "win32":
+        dirs.append(os.path.join("windows", "lib"))
     return dirs
 
 
